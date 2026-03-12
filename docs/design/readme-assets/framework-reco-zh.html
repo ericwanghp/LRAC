@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="zh-Hans">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>LRAC 推荐视频</title>
+    <style>
+      :root {
+        --bg: #f5eedf;
+        --surface: rgba(255, 253, 248, 0.86);
+        --ink: #0f172a;
+        --muted: #475569;
+        --line: rgba(100, 116, 139, 0.18);
+        --blue: #1d4ed8;
+        --teal: #0f766e;
+        --amber: #d97706;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB",
+          "Microsoft YaHei", Arial, Helvetica, sans-serif;
+        background:
+          radial-gradient(circle at 82% 14%, rgba(29, 78, 216, 0.16), transparent 24rem),
+          radial-gradient(circle at 10% 84%, rgba(217, 119, 6, 0.12), transparent 22rem),
+          linear-gradient(135deg, #faf6ec 0%, #f1f6fb 100%);
+        color: var(--ink);
+        overflow: hidden;
+      }
+
+      .stage {
+        position: relative;
+        width: 100vw;
+        height: 100vh;
+      }
+
+      .frame {
+        position: absolute;
+        inset: 34px;
+        border-radius: 34px;
+        background: rgba(255, 255, 255, 0.52);
+        border: 1px solid rgba(230, 222, 208, 0.92);
+        box-shadow: 0 24px 70px rgba(15, 23, 42, 0.08);
+        overflow: hidden;
+      }
+
+      .grain {
+        position: absolute;
+        inset: 0;
+        opacity: 0.22;
+        background-image:
+          linear-gradient(rgba(15, 23, 42, 0.02) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(15, 23, 42, 0.02) 1px, transparent 1px);
+        background-size: 18px 18px;
+        pointer-events: none;
+      }
+
+      .deck {
+        position: absolute;
+        inset: 0;
+      }
+
+      .slide {
+        position: absolute;
+        inset: 0;
+        padding: 72px 84px;
+        display: grid;
+        grid-template-columns: 1.05fr 0.95fr;
+        gap: 44px;
+        align-items: center;
+        opacity: 0;
+        transform: translateY(26px) scale(0.985);
+        transition: opacity 700ms ease, transform 700ms ease;
+      }
+
+      .slide.active {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+
+      .eyebrow {
+        font-size: 15px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--blue);
+        font-weight: 800;
+        margin-bottom: 18px;
+      }
+
+      h1,
+      h2 {
+        margin: 0 0 18px;
+        font-family: ui-serif, Georgia, "Times New Roman", serif;
+        line-height: 1.08;
+      }
+
+      h1 {
+        font-size: 70px;
+      }
+
+      h2 {
+        font-size: 56px;
+      }
+
+      p {
+        margin: 0;
+        font-size: 24px;
+        line-height: 1.52;
+        color: var(--muted);
+      }
+
+      .card-row {
+        display: flex;
+        gap: 16px;
+        margin-top: 28px;
+        flex-wrap: wrap;
+      }
+
+      .stat {
+        min-width: 168px;
+        padding: 18px 20px;
+        border-radius: 20px;
+        background: var(--surface);
+        border: 1px solid var(--line);
+      }
+
+      .stat strong {
+        display: block;
+        font-size: 28px;
+        color: var(--ink);
+        margin-bottom: 6px;
+      }
+
+      .stat span {
+        color: var(--muted);
+        font-size: 16px;
+      }
+
+      .visual {
+        position: relative;
+      }
+
+      .visual img {
+        width: 100%;
+        height: auto;
+        display: block;
+        border-radius: 28px;
+        box-shadow: 0 18px 48px rgba(15, 23, 42, 0.12);
+      }
+
+      .note-stack {
+        display: grid;
+        gap: 14px;
+        margin-top: 26px;
+      }
+
+      .note {
+        padding: 18px 20px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.72);
+        border: 1px solid rgba(100, 116, 139, 0.14);
+        font-size: 18px;
+        color: var(--muted);
+      }
+
+      .note strong {
+        color: var(--ink);
+      }
+
+      .command-block {
+        margin-top: 30px;
+        padding: 26px 28px;
+        border-radius: 24px;
+        background: #0f172a;
+        color: #f8fafc;
+        font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+        font-size: 23px;
+        line-height: 1.65;
+        white-space: pre-line;
+      }
+
+      .footer {
+        position: absolute;
+        left: 84px;
+        right: 84px;
+        bottom: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .progress {
+        width: 320px;
+        height: 6px;
+        border-radius: 999px;
+        background: rgba(148, 163, 184, 0.24);
+        overflow: hidden;
+      }
+
+      .progress > span {
+        display: block;
+        height: 100%;
+        width: 0%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, var(--amber), var(--blue));
+        transition: width 450ms ease;
+      }
+
+      .counter {
+        font-size: 16px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: #64748b;
+      }
+
+      .big-quote {
+        font-size: 40px;
+        line-height: 1.2;
+        font-family: ui-serif, Georgia, "Times New Roman", serif;
+        margin-top: 28px;
+        color: var(--ink);
+      }
+
+      code {
+        font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+        font-size: 0.95em;
+        color: var(--ink);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="stage">
+      <div class="frame">
+        <div class="grain"></div>
+        <div class="deck">
+          <section class="slide active">
+            <div>
+              <div class="eyebrow">Long-running AI delivery</div>
+              <h1>让 AI 代理像真实软件团队一样交付。</h1>
+              <p>
+                LRAC 把多代理协作变成可复用的交付系统: 角色分工, 标准流程, 持久记忆, 规则与质量门禁。
+              </p>
+              <div class="card-row">
+                <div class="stat">
+                  <strong>37</strong>
+                  <span>专项代理</span>
+                </div>
+                <div class="stat">
+                  <strong>8</strong>
+                  <span>交付阶段</span>
+                </div>
+                <div class="stat">
+                  <strong>2</strong>
+                  <span>记忆层</span>
+                </div>
+              </div>
+            </div>
+            <div class="visual">
+              <img src="./framework-hero.svg" alt="Framework hero" />
+            </div>
+          </section>
+
+          <section class="slide">
+            <div>
+              <div class="eyebrow">Why prompt-only breaks</div>
+              <h2>快起步, 难复盘。</h2>
+              <p>大多数 AI 编码体验在前 10 分钟很快, 但在第 10 天开始崩: 上下文丢失, 并行混乱, 需求漂移, 无法审计。</p>
+              <div class="note-stack">
+                <div class="note"><strong>会话结束:</strong> 决策与上下文只留在聊天记录里。</div>
+                <div class="note"><strong>并行开发:</strong> 缺少 team lead 路由与责任归属。</div>
+                <div class="note"><strong>质量门禁:</strong> 测试与完成标准容易被跳过, 很难追溯。</div>
+              </div>
+            </div>
+            <div class="visual">
+              <img src="./framework-advantages.svg" alt="Framework advantages" />
+            </div>
+          </section>
+
+          <section class="slide">
+            <div>
+              <div class="eyebrow">Architecture</div>
+              <h2>会话协同 + 文件化状态 + Git 可追溯。</h2>
+              <p>
+                Agent Teams 负责实时编排. 项目状态沉淀在文件系统与 Git 中, 让工作可以暂停, 恢复, 复审, 并持续演进。
+              </p>
+              <div class="note-stack">
+                <div class="note"><strong>Session layer:</strong> team lead 协调并行 lanes, 明确 owner 与交付节奏。</div>
+                <div class="note"><strong>Project layer:</strong> <code>tasks.json</code>, <code>progress.txt</code>, <code>docs/</code> 作为可恢复记忆。</div>
+                <div class="note"><strong>Governance:</strong> <code>.claude/rules/</code> 定义流程, blocker 协议, 完成清单与质量门槛。</div>
+              </div>
+            </div>
+            <div class="visual">
+              <img src="./framework-architecture.svg" alt="Framework architecture" />
+            </div>
+          </section>
+
+          <section class="slide">
+            <div>
+              <div class="eyebrow">Benefits</div>
+              <h2>可恢复, 可并行, 可审计。</h2>
+              <p>把即兴提示变成可重复的交付操作系统: 专业分工, 可追溯变更, 与可恢复执行历史。</p>
+              <div class="card-row">
+                <div class="stat">
+                  <strong>Resume</strong>
+                  <span>blockers 与下一步写进文件, 随时接力</span>
+                </div>
+                <div class="stat">
+                  <strong>Parallelize</strong>
+                  <span>team lead 路由角色, 并行不打架</span>
+                </div>
+                <div class="stat">
+                  <strong>Audit</strong>
+                  <span>docs + state + Git 让交付可复盘</span>
+                </div>
+              </div>
+            </div>
+            <div class="visual">
+              <img src="./framework-workflow.svg" alt="Framework workflow" />
+            </div>
+          </section>
+
+          <section class="slide">
+            <div>
+              <div class="eyebrow">Start here</div>
+              <h2>把它作为你的 AI 交付操作系统。</h2>
+              <p>模板仓库 + 规则 + 状态机, 专为长期项目与多代理协作设计。</p>
+              <div class="command-block">./setup.sh new ../your-project
+cd ../your-project
+./init.sh
+CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1 claude</div>
+              <div class="big-quote">Recoverable. Parallel. Reviewable. 可恢复 · 可并行 · 可审计</div>
+            </div>
+            <div class="visual">
+              <img src="./framework-video-poster.svg" alt="Framework poster" />
+            </div>
+          </section>
+        </div>
+
+        <div class="footer">
+          <div class="counter" id="counter">01 / 05</div>
+          <div class="progress"><span id="bar"></span></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const slides = Array.from(document.querySelectorAll(".slide"));
+      const counter = document.getElementById("counter");
+      const bar = document.getElementById("bar");
+      const slideDuration = 4200;
+      const params = new URLSearchParams(window.location.search);
+      const autoplay = params.get("autoplay") === "1";
+      let index = 0;
+      let timer = null;
+
+      const showSlide = (nextIndex) => {
+        index = (nextIndex + slides.length) % slides.length;
+        slides.forEach((slide, slideIndex) => {
+          slide.classList.toggle("active", slideIndex === index);
+        });
+        counter.textContent = `${String(index + 1).padStart(2, "0")} / ${String(slides.length).padStart(2, "0")}`;
+        bar.style.width = `${((index + 1) / slides.length) * 100}%`;
+      };
+
+      const start = () => {
+        timer = window.setInterval(() => showSlide(index + 1), slideDuration);
+      };
+
+      window.addEventListener("keydown", (event) => {
+        if (event.key === "ArrowRight") {
+          showSlide(index + 1);
+        }
+        if (event.key === "ArrowLeft") {
+          showSlide(index - 1);
+        }
+      });
+
+      showSlide(0);
+      if (autoplay) {
+        start();
+      }
+    </script>
+  </body>
+</html>
+
