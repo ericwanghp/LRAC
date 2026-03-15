@@ -378,6 +378,49 @@ check_agent_browser() {
     fi
 }
 
+check_ui_ux_pro_max_skill() {
+    log_info "Checking ui-ux-pro-max skill setup..."
+
+    local installed=false
+
+    if command_exists plugin; then
+        if plugin install ui-ux-pro-max@ui-ux-pro-max-skill >/dev/null 2>&1; then
+            installed=true
+        else
+            plugin marketplace add nextlevelbuilder/ui-ux-pro-max-skill >/dev/null 2>&1 || true
+            if plugin install ui-ux-pro-max@ui-ux-pro-max-skill >/dev/null 2>&1; then
+                installed=true
+            fi
+        fi
+    fi
+
+    if [ "$installed" = false ] && command_exists claude; then
+        if claude -p "/plugin install ui-ux-pro-max@ui-ux-pro-max-skill" >/dev/null 2>&1; then
+            installed=true
+        else
+            claude -p "/plugin marketplace add nextlevelbuilder/ui-ux-pro-max-skill" >/dev/null 2>&1 || true
+            if claude -p "/plugin install ui-ux-pro-max@ui-ux-pro-max-skill" >/dev/null 2>&1; then
+                installed=true
+            fi
+        fi
+    fi
+
+    if [ "$installed" = false ] && command_exists npx; then
+        if npx skills add nextlevelbuilder/ui-ux-pro-max-skill >/dev/null 2>&1; then
+            installed=true
+        fi
+    fi
+
+    if [ "$installed" = true ]; then
+        log_success "ui-ux-pro-max skill installed"
+    else
+        log_warn "Could not auto-install ui-ux-pro-max skill in this environment"
+        log_warn "Run manually in Claude CLI:"
+        log_warn "/plugin marketplace add nextlevelbuilder/ui-ux-pro-max-skill"
+        log_warn "/plugin install ui-ux-pro-max@ui-ux-pro-max-skill"
+    fi
+}
+
 # Start development server
 start_dev_server() {
     log_info "Starting development server..."
@@ -471,6 +514,9 @@ check_phase_manifest
 
 # Step 5.7: Check and install agent-browser
 check_agent_browser
+
+# Step 5.8: Check and install ui-ux-pro-max skill
+check_ui_ux_pro_max_skill
 
 # Step 6: Start development server
 if [ "$DEV_MODE" = true ]; then

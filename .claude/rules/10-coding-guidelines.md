@@ -89,6 +89,19 @@ In `tasks.json`:
 
 **Rationale**: Ensures tasks are properly validated before being marked complete.
 
+### 6. Use Lucide as Default Icon Library for UI Work
+
+**Rule**: For frontend UI implementation and component examples, use Lucide icons as the default icon system.
+
+**Implementation Guidance**:
+- React/Next.js: prefer `lucide-react`
+- Non-React contexts: prefer `lucide`
+- Before coding, check whether the icon dependency already exists in `package.json`
+- If missing, add the required Lucide package as part of the same change
+- Avoid mixing multiple icon libraries in one feature unless there is a documented blocker
+
+**Rationale**: A single icon library improves visual consistency, maintainability, and bundle predictability.
+
 ---
 
 ## Hook Configuration

@@ -23,7 +23,7 @@ Phase 8: Project Management as team-lead (Throughout)
 | Phase | Required Skill | When to Invoke | How |
 |-------|---------------|----------------|-----|
 | **1-2** | `brainstorming` | When receiving new feature request | `Skill("brainstorming")` |
-| **2.5** | `frontend-design` → `enhance-prompt` → `stitch-loop` → `design-md` → `shadcn-ui` | When creating UI/UX design | Run style/theme brainstorming first, then invoke Stitch skills in sequence |
+| **2.5** | `ui-ux-pro-max` → `enhance-prompt` → `stitch-loop` → `design-md` → `shadcn-ui` | When creating UI/UX design | Run style/theme brainstorming first, then invoke Stitch skills in sequence |
 | **3-4** | `writing-plans` | When BRD/PRD approved, creating architecture | `Skill("writing-plans")` |
 | **5** | `executing-plans` | When starting implementation | `Skill("executing-plans")` |
 | **5** | `tdd-enforcement` | Before writing ANY production code | `Skill("tdd-enforcement")` |
@@ -77,7 +77,7 @@ Use this matrix to remove dispatch ambiguity between agents and skills.
 |-------|----------------|----------------|----------------|
 | 1 | `business-analyst` + `market-researcher` | `brainstorming` | `competitive-analysis` |
 | 2 | `product-manager` + `ux-designer` | `brainstorming` | `competitive-analysis` |
-| 2.5 | `ux-designer` + `frontend-dev` | `frontend-design` → `enhance-prompt` → `stitch-loop` → `design-md` | `shadcn-ui` |
+| 2.5 | `ux-designer` + `frontend-dev` | `ui-ux-pro-max` → `enhance-prompt` → `stitch-loop` → `design-md` | `shadcn-ui` |
 | 3 | `architect` + `researcher` + `architect-reviewer` | `writing-plans` | None |
 | 4 | `architect` | `writing-plans` | None |
 | 5 | `fullstack-dev` + `code-reviewer` | `executing-plans` + `tdd-enforcement` + `verification-before-completion` | `systematic-debugging` + `fix` + `dispatching-parallel-agents` |
@@ -90,6 +90,11 @@ Dispatch precedence rule:
 2. Dispatch required agent first.
 3. Invoke required skill before implementation/review/testing for that phase.
 4. Use optional skill only when trigger conditions are met.
+
+Agent Teams execution gate:
+- For phases with required agents, execution must run through subagents in independent tmux panes.
+- When 2+ independent runnable tasks exist, parallel execution is mandatory unless a serial blocker is documented.
+- Enforcement details are defined in `.claude/rules/04-agent-teams.md`.
 
 ## Phase Context Loading
 
@@ -128,7 +133,7 @@ To reduce context bloat, phase execution should follow progressive disclosure:
 **Required Skills** (Google Official stitch-skills from https://github.com/google-labs-code/stitch-skills):
 
 Invoke skills in sequence:
-1. `Skill("frontend-design")` — Run multi-round user Q&A brainstorming to lock design style and theme
+1. `Skill("ui-ux-pro-max")` — Run multi-round user Q&A brainstorming to lock design style and theme
 2. `Skill("enhance-prompt")` — Transform approved style/theme into Stitch-optimized prompts
 3. `Skill("stitch-loop")` — Generate UI designs using Stitch MCP
 4. `Skill("design-md")` — Document design system in DESIGN.md
@@ -156,6 +161,10 @@ Invoke skills in sequence:
 
 **⚠️ CRITICAL: All UI projects MUST go through this phase before Phase 3 (Architecture Design)**
 
+Icon system default for UI outputs:
+- Use Lucide as the default icon library (`lucide-react` for React/Next.js).
+- Keep icon library choice consistent across generated pages and UI specs.
+
 #### Phase 2.5 Workflow
 
 ```
@@ -163,9 +172,9 @@ Invoke skills in sequence:
 │                     Phase 2.5: Stitch UI/UX Design Workflow                │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
-│  Step 0: Style/Theme Brainstorming (frontend-design skill)                 │
+│  Step 0: Style/Theme Brainstorming (ui-ux-pro-max skill)                   │
 │  ─────────────────────────────────────────────────                          │
-│  - Invoke: Skill("frontend-design")                                        │
+│  - Invoke: Skill("ui-ux-pro-max")                                          │
 │  - Conduct multi-round Q&A with user to confirm visual style and theme     │
 │  - Lock direction before any Stitch generation                             │
 │  - Record agreed style/theme in PRD or design notes                        │
@@ -217,7 +226,7 @@ Invoke skills in sequence:
 
 | Skill | Purpose | When to Use | Install Command |
 |-------|---------|-------------|-----------------|
-| `frontend-design` | Brainstorm and converge on design style/theme with user | Before any Stitch prompt generation | Built-in skill |
+| `ui-ux-pro-max` | Brainstorm and converge on design style/theme with user | Before any Stitch prompt generation | `/plugin install ui-ux-pro-max@ui-ux-pro-max-skill` |
 | `enhance-prompt` | Transform vague UI ideas into Stitch-optimized prompts | Before generating any design | `npx skills add google-labs-code/stitch-skills --skill enhance-prompt --global` |
 | `stitch-loop` | Iteratively build multi-page websites with baton system | For page generation | `npx skills add google-labs-code/stitch-skills --skill stitch-loop --global` |
 | `design-md` | Create DESIGN.md documenting design system | After initial design generation | `npx skills add google-labs-code/stitch-skills --skill design-md --global` |

@@ -65,14 +65,17 @@ All detailed rules are in `.claude/rules/` directory:
 
 1. **Use Agent Teams for executable parallel work**
    - Start from `.auto-coding/tasks.json` (`parallelGroups` + dependencies).
+   - If 2+ runnable tasks are independent, parallel subagent execution is mandatory by default.
    - Single-agent serial execution is valid only for inherently sequential tasks.
 
 2. **Enforce strict team-lead boundary**
    - `project-manager` coordinates only: breakdown, assignment, tracking, blocker resolution, and acceptance verification.
    - `project-manager` must not write implementation code or bypass role separation.
+   - Work for required roles must execute in corresponding subagents, not in the main agent.
 
 3. **Follow parallel execution protocol**
    - Start subagents in background and isolate each in an independent tmux pane.
+   - Keep one pane per subagent and maintain pane-to-task mapping.
    - Coordinate dependencies through task status and messages.
 
 4. **Treat subagents as temporary workers**
@@ -81,6 +84,14 @@ All detailed rules are in `.claude/rules/` directory:
 
 5. **Keep completion authority single-sourced**
    - Feature completion steps are defined only in `.claude/rules/05-session-workflow.md` under `Feature Completion Checklist`.
+
+### Session Start Parallel Audit ⚠️ REQUIRED
+
+1. Identify runnable tasks from `.auto-coding/tasks.json`.
+2. Mark independence and required specialist role per task.
+3. If 2+ independent tasks exist, run parallel subagents by default.
+4. Bind one subagent to one tmux pane and keep pane-to-task mapping.
+5. Any serial fallback must include explicit blocker reason in progress/task updates.
 
 ### Feature Completion Checklist ⚠️ MANDATORY
 
@@ -111,11 +122,11 @@ Team-lead coordination context is always-on from Phase 1 to Phase 8 via `.claude
 
 ### Stitch Design Workflow (Phase 2.5)
 
-**Required Skills**: `frontend-design` → `enhance-prompt` → `stitch-loop` → `design-md` → `shadcn-ui`
+**Required Skills**: `ui-ux-pro-max` → `enhance-prompt` → `stitch-loop` → `design-md` → `shadcn-ui`
 
 | Step | Skill | Output |
 |------|-------|--------|
-| 1. Brainstorm Style & Theme | `frontend-design` | Confirmed direction via multi-round user Q&A |
+| 1. Brainstorm Style & Theme | `ui-ux-pro-max` | Confirmed direction via multi-round user Q&A |
 | 2. Enhance Prompt | `enhance-prompt` | `.stitch/next-prompt.md` |
 | 3. Generate Design | `stitch-loop` | `.stitch/designs/{page}.html` + `.png` |
 | 4. Document System | `design-md` | `.stitch/DESIGN.md` |
