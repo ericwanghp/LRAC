@@ -275,7 +275,7 @@ function checkSkillConsistency() {
   const processRulePath = path.join(CLAUDE_DIR, 'rules', '03-development-process.md');
   const requiredByRule = extractSkillsFromProcessRule(processRulePath);
   const localSkillDirs = new Set(getLocalSkillDirs());
-  const externalAllowed = new Set(['enhance-prompt', 'stitch-loop', 'design-md', 'shadcn-ui']);
+  const externalAllowed = new Set(['enhance-prompt', 'stitch-loop', 'design-md', 'shadcn-ui', 'ui-ux-pro-max']);
 
   requiredByRule.forEach((skillName) => {
     if (!localSkillDirs.has(skillName) && !externalAllowed.has(skillName)) {

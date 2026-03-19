@@ -140,7 +140,7 @@ Invoke skills in sequence:
 5. `Skill("shadcn-ui")` — Map designs to shadcn/ui components (optional)
 
 **Prerequisites**:
-- Stitch MCP server must be configured in `~/.claude.json`:
+- Stitch MCP server must be configured in the active runtime MCP config (for Claude CLI: `~/.claude.json`):
   ```json
   "stitch": {
     "type": "http",
@@ -226,7 +226,7 @@ Icon system default for UI outputs:
 
 | Skill | Purpose | When to Use | Install Command |
 |-------|---------|-------------|-----------------|
-| `ui-ux-pro-max` | Brainstorm and converge on design style/theme with user | Before any Stitch prompt generation | `/plugin install ui-ux-pro-max@ui-ux-pro-max-skill` |
+| `ui-ux-pro-max` | Brainstorm and converge on design style/theme with user | Before any Stitch prompt generation | `npx skills add nextlevelbuilder/ui-ux-pro-max-skill` (portable) / `/plugin install ui-ux-pro-max@ui-ux-pro-max-skill` (Claude CLI) |
 | `enhance-prompt` | Transform vague UI ideas into Stitch-optimized prompts | Before generating any design | `npx skills add google-labs-code/stitch-skills --skill enhance-prompt --global` |
 | `stitch-loop` | Iteratively build multi-page websites with baton system | For page generation | `npx skills add google-labs-code/stitch-skills --skill stitch-loop --global` |
 | `design-md` | Create DESIGN.md documenting design system | After initial design generation | `npx skills add google-labs-code/stitch-skills --skill design-md --global` |

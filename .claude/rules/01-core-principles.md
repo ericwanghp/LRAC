@@ -1,6 +1,6 @@
 # Core Design Principles
 
-> Multi-role collaborative development framework based on Claude Code native Agent Teams + Anthropic's best practices for long-running agents.
+> Multi-role collaborative development framework based on native multi-agent runtimes (Claude/Codex compatible) + long-running agent best practices.
 
 ## Dual-Layer Architecture
 
@@ -32,7 +32,7 @@
 
 | Principle | Description |
 |-----------|-------------|
-| **Native First** | Prioritize Claude Code built-in capabilities |
+| **Runtime Native First** | Prioritize the active runtime's native capabilities first, then portable CLI fallbacks |
 | **Feature List** | tasks.json as feature list, passes tracks status |
 | **Progress Notes** | progress.txt for cross-session context |
 | **Progressive Context** | Load only the current phase, role, and task context by default |

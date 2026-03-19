@@ -34,6 +34,15 @@ function log(message, type = 'info') {
   console.log(`${icons[type] || ''} ${message}`);
 }
 
+function commandExists(cmd) {
+  try {
+    require('child_process').execSync(`command -v ${cmd}`, { stdio: 'ignore' });
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
 function getRecommendedMCPs() {
   if (!fs.existsSync(MCP_CONFIG)) {
     return [];
@@ -244,6 +253,11 @@ async function installMCP(mcp) {
   // Ask user for installation scope
   const scope = await promptScope(mcp.name);
   log(`  Selected scope: ${scope}`, 'info');
+  const hasClaudeCli = commandExists('claude');
+  if (!hasClaudeCli) {
+    log(`  Claude CLI not found. Configure ${mcp.name} MCP in your active runtime settings manually.`, 'warning');
+    return false;
+  }
 
   try {
     // For MCPs that require API key (like Stitch), use custom install command

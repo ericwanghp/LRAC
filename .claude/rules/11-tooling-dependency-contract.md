@@ -50,6 +50,17 @@ When mismatch is found, fix in this order:
 2. Remove or downgrade hard prerequisites that are not truly required.
 3. Update MCP config only when the project explicitly chooses to support that MCP.
 
+## Runtime Compatibility (Claude / Codex)
+
+The framework must remain runtime-compatible:
+
+1. Do not enforce a single vendor-only CLI command as the only installation path.
+2. Prefer portable commands first (for example `npx skills add ...`) and keep runtime-specific commands as fallback.
+3. If a runtime-specific command is required, document both:
+   - portable fallback
+   - runtime-specific command variant
+4. Dependency checks must degrade gracefully when a runtime CLI is unavailable, and provide actionable manual guidance instead of hard-failing unrelated phases.
+
 ## Ownership
 
 - Primary owner: team-lead / project-manager

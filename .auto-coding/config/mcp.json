@@ -1,7 +1,7 @@
 {
   "version": "1.0",
   "description": "MCP Server Recommendations - Documents MCPs that enhance this framework",
-  "_comment": "This file is for documentation only. Run 'node .claude/scripts/check-mcp.js' to verify configuration",
+  "_comment": "This file is for documentation only. Run 'node .claude/scripts/check-mcp.js' to verify configuration. Use runtime-specific MCP command equivalents when not using Claude CLI.",
   "servers": {
     "stitch": {
       "enabled": true,
@@ -9,7 +9,7 @@
       "requiresApiKey": true,
       "apiKeyEnv": "STITCH_API_KEY",
       "apiKeyUrl": "https://aistudio.google.com/apikey",
-      "command": "claude mcp add stitch --transport http https://stitch.googleapis.com/mcp --header \"X-Goog-Api-Key: YOUR_API_KEY\" -s user",
+      "command": "portable-config: stitch http endpoint + API key in active runtime MCP settings (Claude CLI example: claude mcp add stitch --transport http https://stitch.googleapis.com/mcp --header \"X-Goog-Api-Key: YOUR_API_KEY\" -s user)",
       "config": {
         "transport": "http",
         "url": "https://stitch.googleapis.com/mcp",

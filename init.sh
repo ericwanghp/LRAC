@@ -30,6 +30,8 @@ PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SKIP_DEPS=false
 DEV_MODE=false
 TEST_MODE=false
+RUNTIME_MODE="auto"
+EFFECTIVE_RUNTIME=""
 
 # ============================================================
 # Function Definitions
@@ -60,12 +62,14 @@ Options:
   -s, --skip-deps  Skip dependency installation
   -d, --dev        Start development mode (keep service running)
   -t, --test       Run tests to verify environment
+  -r, --runtime    Runtime mode: auto | claude | codex
 
 Examples:
   ./init.sh              # Full initialization
   ./init.sh -s           # Skip dependency installation
   ./init.sh -d           # Development mode (run in background)
   ./init.sh -t           # Environment verification only
+  ./init.sh -r codex     # Prefer Codex-compatible guidance and install paths
 
 EOF
 }
@@ -73,6 +77,27 @@ EOF
 # Check if command exists
 command_exists() {
     command -v "$1" >/dev/null 2>&1
+}
+
+resolve_runtime_mode() {
+    case "$RUNTIME_MODE" in
+        auto)
+            if command_exists claude; then
+                EFFECTIVE_RUNTIME="claude"
+            elif command_exists codex; then
+                EFFECTIVE_RUNTIME="codex"
+            else
+                EFFECTIVE_RUNTIME="generic"
+            fi
+            ;;
+        claude|codex)
+            EFFECTIVE_RUNTIME="$RUNTIME_MODE"
+            ;;
+        *)
+            log_error "Invalid runtime: $RUNTIME_MODE (expected: auto|claude|codex)"
+            exit 1
+            ;;
+    esac
 }
 
 # Check and setup GitHub CLI
@@ -293,7 +318,7 @@ check_framework_skills() {
     log_info "Checking framework Skills dependencies..."
 
     if [ -f "$PROJECT_ROOT/.claude/scripts/check-skills.js" ]; then
-        node "$PROJECT_ROOT/.claude/scripts/check-skills.js"
+        FRAMEWORK_RUNTIME="$EFFECTIVE_RUNTIME" node "$PROJECT_ROOT/.claude/scripts/check-skills.js"
     else
         log_warn "Skills check script does not exist"
     fi
@@ -304,7 +329,10 @@ check_framework_mcp() {
     log_info "Checking framework MCP dependencies..."
 
     if [ -f "$PROJECT_ROOT/.claude/scripts/check-mcp.js" ]; then
-        node "$PROJECT_ROOT/.claude/scripts/check-mcp.js"
+        FRAMEWORK_RUNTIME="$EFFECTIVE_RUNTIME" node "$PROJECT_ROOT/.claude/scripts/check-mcp.js"
+        if [ "$EFFECTIVE_RUNTIME" = "codex" ]; then
+            log_info "Codex mode: if any MCP auto-install is skipped, configure MCP in Codex runtime settings"
+        fi
     else
         log_warn "MCP check script does not exist"
     fi
@@ -383,23 +411,37 @@ check_ui_ux_pro_max_skill() {
 
     local installed=false
 
-    if command_exists plugin; then
-        if plugin install ui-ux-pro-max@ui-ux-pro-max-skill >/dev/null 2>&1; then
-            installed=true
-        else
-            plugin marketplace add nextlevelbuilder/ui-ux-pro-max-skill >/dev/null 2>&1 || true
-            if plugin install ui-ux-pro-max@ui-ux-pro-max-skill >/dev/null 2>&1; then
+    if [ "$EFFECTIVE_RUNTIME" = "codex" ]; then
+        if command_exists npx; then
+            if npx skills add nextlevelbuilder/ui-ux-pro-max-skill >/dev/null 2>&1; then
                 installed=true
             fi
         fi
-    fi
+    else
+        if command_exists plugin; then
+            if plugin install ui-ux-pro-max@ui-ux-pro-max-skill >/dev/null 2>&1; then
+                installed=true
+            else
+                plugin marketplace add nextlevelbuilder/ui-ux-pro-max-skill >/dev/null 2>&1 || true
+                if plugin install ui-ux-pro-max@ui-ux-pro-max-skill >/dev/null 2>&1; then
+                    installed=true
+                fi
+            fi
+        fi
 
-    if [ "$installed" = false ] && command_exists claude; then
-        if claude -p "/plugin install ui-ux-pro-max@ui-ux-pro-max-skill" >/dev/null 2>&1; then
-            installed=true
-        else
-            claude -p "/plugin marketplace add nextlevelbuilder/ui-ux-pro-max-skill" >/dev/null 2>&1 || true
+        if [ "$installed" = false ] && command_exists claude; then
             if claude -p "/plugin install ui-ux-pro-max@ui-ux-pro-max-skill" >/dev/null 2>&1; then
+                installed=true
+            else
+                claude -p "/plugin marketplace add nextlevelbuilder/ui-ux-pro-max-skill" >/dev/null 2>&1 || true
+                if claude -p "/plugin install ui-ux-pro-max@ui-ux-pro-max-skill" >/dev/null 2>&1; then
+                    installed=true
+                fi
+            fi
+        fi
+
+        if [ "$installed" = false ] && command_exists npx; then
+            if npx skills add nextlevelbuilder/ui-ux-pro-max-skill >/dev/null 2>&1; then
                 installed=true
             fi
         fi
@@ -415,9 +457,15 @@ check_ui_ux_pro_max_skill() {
         log_success "ui-ux-pro-max skill installed"
     else
         log_warn "Could not auto-install ui-ux-pro-max skill in this environment"
-        log_warn "Run manually in Claude CLI:"
-        log_warn "/plugin marketplace add nextlevelbuilder/ui-ux-pro-max-skill"
-        log_warn "/plugin install ui-ux-pro-max@ui-ux-pro-max-skill"
+        if [ "$EFFECTIVE_RUNTIME" = "codex" ]; then
+            log_warn "Run manually for Codex-compatible path:"
+            log_warn "npx skills add nextlevelbuilder/ui-ux-pro-max-skill"
+        else
+            log_warn "Run manually in Claude CLI:"
+            log_warn "/plugin marketplace add nextlevelbuilder/ui-ux-pro-max-skill"
+            log_warn "/plugin install ui-ux-pro-max@ui-ux-pro-max-skill"
+            log_warn "Or portable fallback: npx skills add nextlevelbuilder/ui-ux-pro-max-skill"
+        fi
     fi
 }
 
@@ -473,6 +521,14 @@ while [[ $# -gt 0 ]]; do
             TEST_MODE=true
             shift
             ;;
+        -r|--runtime)
+            if [[ -z "$2" ]]; then
+                log_error "Missing value for --runtime (expected: auto|claude|codex)"
+                exit 1
+            fi
+            RUNTIME_MODE="$2"
+            shift 2
+            ;;
         *)
             log_error "Unknown argument: $1"
             show_help
@@ -481,11 +537,14 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+resolve_runtime_mode
+
 # Show welcome message
 echo "========================================"
 echo "  Project Environment Initialization"
 echo "========================================"
 echo ""
+log_info "Runtime mode: $RUNTIME_MODE (effective: $EFFECTIVE_RUNTIME)"
 
 # Step 1: Install dependencies
 if [ "$SKIP_DEPS" = false ]; then
@@ -540,5 +599,5 @@ echo "  1. Read .auto-coding/tasks.json to understand tasks"
 echo "  2. Read .auto-coding/progress.txt to understand progress"
 echo "  3. Set active phase and load context pointers (AUTO_CODING_PHASE=1..8 node .claude/hooks/read-context.js)"
 echo "  4. Select a task to start development"
-echo "  or directly start Claude Code: claude and tell it your project requirements"
+echo "  or directly start your coding runtime (e.g. Claude CLI or Codex CLI) and tell it your project requirements"
 echo ""

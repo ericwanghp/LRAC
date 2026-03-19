@@ -52,7 +52,31 @@ function getInstalledSkills() {
     }
   }
 
-  // Method 2: Try using claude skill list CLI (won't work in nested session)
+  // Method 2: Try using npx skills list (portable)
+  try {
+    const npxResult = execSync('npx -y skills list 2>/dev/null || echo ""', {
+      encoding: 'utf8',
+      stdio: ['pipe', 'pipe', 'pipe']
+    });
+    const lines = npxResult.split('\n');
+    lines.forEach(line => {
+      let match = line.match(/^(\w[-\w:]*)\s*·/);
+      if (match) {
+        skills.push(match[1]);
+        return;
+      }
+      match = line.match(/^[-*]\s+(\w[-\w:]*)/);
+      if (match) {
+        skills.push(match[1]);
+      }
+    });
+    if (skills.length > 0) {
+      return Array.from(new Set(skills));
+    }
+  } catch (e) {
+  }
+
+  // Method 3: Try using claude skill list CLI
   try {
     const result = execSync('claude skill list 2>/dev/null || echo "[]"', {
       encoding: 'utf8',
@@ -80,7 +104,7 @@ function getInstalledSkills() {
     // Return whatever we have
   }
 
-  return skills;
+  return Array.from(new Set(skills));
 }
 
 
@@ -180,7 +204,8 @@ async function installSkill(skillName, source, options = {}) {
     // Handle npx: prefix - use npx skills add
     if (source && source.startsWith('npx:')) {
       const repoInfo = source.replace('npx:', '');
-      const installCmd = options.installCommand || `npx skills add ${repoInfo} --global`;
+      const skillArg = options.skillName ? ` --skill ${options.skillName}` : '';
+      const installCmd = options.installCommand || `npx skills add ${repoInfo}${skillArg} --global`;
 
       try {
         log(`  Running: ${installCmd}`, 'info');
@@ -196,22 +221,30 @@ async function installSkill(skillName, source, options = {}) {
       }
     }
 
-    // Handle skill:// and other sources - try claude plugin install
+    // Handle skill:// and other sources - try portable first, then runtime-specific
     const scope = await promptScope(skillName);
     log(`  Selected scope: ${scope}`, 'info');
+    const npxScope = scope === 'user' ? 'global' : scope;
+    const installCandidates = [
+      `npx skills add anthropics/skills --skill ${skillName} --${npxScope}`,
+      `claude plugin install -s ${scope} ${skillName}`,
+      `claude skill install ${skillName}`
+    ];
 
-    const installCommand = `claude plugin install -s ${scope} ${skillName}`;
     let installed = false;
 
-    try {
-      log(`  Running: ${installCommand}`, 'info');
-      execSync(installCommand, {
-        encoding: 'utf8',
-        stdio: 'inherit',
-        cwd: ROOT_DIR
-      });
-      installed = true;
-    } catch (e) {
+    for (const installCommand of installCandidates) {
+      try {
+        log(`  Running: ${installCommand}`, 'info');
+        execSync(installCommand, {
+          encoding: 'utf8',
+          stdio: 'inherit',
+          cwd: ROOT_DIR
+        });
+        installed = true;
+        break;
+      } catch (e) {
+      }
     }
 
     if (!installed) {
@@ -321,7 +354,8 @@ async function main() {
           const repo = skill.source.replace('github:', '');
           log(`  Run: npx skills add ${repo} --skill ${skill.skillName || skill.name} --global`, 'info');
         } else {
-          log(`  Run: claude skill install ${skill.name}`, 'info');
+          log(`  Run: npx skills add anthropics/skills --skill ${skill.name} --global`, 'info');
+          log(`  Or:  claude skill install ${skill.name}`, 'info');
         }
         failed.push(skill);  // Store full skill object for proper error display
       }
@@ -341,6 +375,7 @@ async function main() {
         const skillName = skill.skillName || skill.name;
         console.log(`   - npx skills add ${repo} --skill ${skillName} --global`);
       } else {
+        console.log(`   - npx skills add anthropics/skills --skill ${skill.name || skill} --global`);
         console.log(`   - claude skill install ${skill.name || skill}`);
       }
     });

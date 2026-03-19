@@ -116,11 +116,11 @@
         "usage": "During Phase 5.5 code review"
       },
       {
-        "name": "frontend-design",
-        "source": "github:anthropics/skills",
-        "skillName": "frontend-design",
-        "description": "Frontend UI design and implementation",
-        "usage": "For UI/UX development",
+        "name": "ui-ux-pro-max",
+        "source": "npx:nextlevelbuilder/ui-ux-pro-max-skill",
+        "skillName": "ui-ux-pro-max",
+        "description": "UI/UX style planning and design direction",
+        "usage": "For Phase 2.5 style/theme brainstorming",
         "autoInstall": true
       }
     ],
@@ -239,6 +239,6 @@
       ]
     }
   },
-  "installCommand": "claude skill install {skill-name}",
-  "checkCommand": "claude skill list"
+  "installCommand": "npx skills add anthropics/skills --skill {skill-name} --global (portable) / claude skill install {skill-name} (Claude CLI fallback)",
+  "checkCommand": "ls ~/.claude/skills (portable) / claude skill list (Claude CLI)"
 }
