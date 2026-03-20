@@ -22,6 +22,20 @@ AUTO_CODING_PHASE=1 node .claude/hooks/read-context.js
 For deeper history, read `.auto-coding/progress.txt` only when the summary is insufficient.
 Set `AUTO_CODING_PHASE` to `1`, `2`, `2.5`, `3`, `4`, `5`, `6`, `7`, or `8` based on your current stage.
 
+## IMAC Entry
+
+Use `/IMAC` when the request is iterative evolution of an existing project instead of net-new delivery.
+
+Execution requirements:
+
+1. Start from `.claude/commands/IMAC.md`
+2. Run intake questions first (single-select + multi-select)
+3. Detect restart phase before planning and execution
+4. Complete impact analysis before implementation
+5. Update `.auto-coding/progress.txt` and `docs/CHANGELOG.md`
+
+`/IMAC` does not bypass feature completion requirements. Any implemented feature must still follow `Feature Completion Checklist`.
+
 ## Parallel Readiness Audit ⚠️ REQUIRED BEFORE EXECUTION
 
 Run a quick audit immediately after Session Start and before selecting execution mode.

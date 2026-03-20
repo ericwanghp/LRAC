@@ -9,6 +9,7 @@ const SKILLS_DIR = path.join(CLAUDE_DIR, 'skills');
 const CONTEXT_DIR = path.join(CLAUDE_DIR, 'context');
 const PHASE_MANIFEST_PATH = path.join(CONTEXT_DIR, 'phase-manifest.json');
 const DEFAULT_BASELINE_PATH = path.join(CLAUDE_DIR, 'config', 'policy-baseline.json');
+const TASKS_JSON_PATH = path.join(ROOT_DIR, '.auto-coding', 'tasks.json');
 
 const args = process.argv.slice(2);
 const strictMode = args.includes('--strict');
@@ -341,6 +342,55 @@ function checkRulesAndScripts() {
   }
 }
 
+function checkTaskIdNamingConvention() {
+  const raw = readFileSafe(TASKS_JSON_PATH);
+  if (!raw) {
+    addFinding('warning', 'TASKS_JSON_MISSING', 'tasks.json not found; skip task id naming check', TASKS_JSON_PATH);
+    return;
+  }
+
+  let data = null;
+  try {
+    data = JSON.parse(raw);
+  } catch (error) {
+    addFinding('error', 'TASKS_JSON_INVALID_JSON', `Invalid JSON: ${error.message}`, TASKS_JSON_PATH);
+    return;
+  }
+
+  const features = Array.isArray(data.features) ? data.features : [];
+  const allowedPhaseSymbols = new Set(['p1r', 'p1b', 'p2p', 'p25d', 'p3a', 'p4b', 'p5d', 'p6t', 'p7d', 'p8m']);
+  const idRegex = /^(inital|imac-[a-z0-9-]+)-(p1r|p1b|p2p|p25d|p3a|p4b|p5d|p6t|p7d|p8m)-\d{3}$/;
+
+  features.forEach((feature) => {
+    const id = feature?.id;
+    if (typeof id !== 'string' || id.length === 0) {
+      addFinding('error', 'TASK_ID_MISSING', 'Feature id is missing or not a string', TASKS_JSON_PATH);
+      return;
+    }
+
+    if (!idRegex.test(id)) {
+      addFinding(
+        'error',
+        'TASK_ID_INVALID_FORMAT',
+        `Feature id does not match {iteration}-{phaseSymbol}-{NNN}: ${id}`,
+        TASKS_JSON_PATH
+      );
+      return;
+    }
+
+    const parts = id.split('-');
+    const phaseSymbol = parts.length >= 3 ? parts[parts.length - 2] : '';
+    if (!allowedPhaseSymbols.has(phaseSymbol)) {
+      addFinding(
+        'error',
+        'TASK_ID_INVALID_PHASE_SYMBOL',
+        `Feature id uses unsupported phase symbol: ${id}`,
+        TASKS_JSON_PATH
+      );
+    }
+  });
+}
+
 function checkPhaseManifestPolicy() {
   const requiredAlwaysOnFiles = new Set([
     '.claude/rules/04-agent-teams.md',
@@ -383,6 +433,7 @@ function runChecks() {
   checkAgentConsistency(agentMap, summaryMap);
   checkSkillConsistency();
   checkRulesAndScripts();
+  checkTaskIdNamingConvention();
   checkPhaseManifestPolicy();
 }
 

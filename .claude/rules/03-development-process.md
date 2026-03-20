@@ -107,6 +107,25 @@ To reduce context bloat, phase execution should follow progressive disclosure:
 
 **Do not default to reading all rules, agents, and skills on every task.**
 
+## IMAC Command Restart Policy
+
+For iterative project changes, `/IMAC` is the canonical command entry:
+
+- Command definition: `.claude/commands/IMAC.md`
+- `/IMAC` must run intake interaction first (single-select + multi-select).
+- `/IMAC` must detect the earliest restart phase before execution.
+- `/IMAC` must run impact analysis before changing code/docs.
+- `/IMAC` must append change records to `.auto-coding/progress.txt` and `docs/CHANGELOG.md`.
+
+Restart phase selection remains aligned with this lifecycle:
+
+- Phase 1: Business goals, market, user segment, value proposition, success metrics
+- Phase 2: Product behavior, workflow, feature definition, acceptance criteria
+- Phase 2.5: UI/UX direction, visual style, interaction design, component behavior
+- Phase 3: Tech stack, system boundaries, decomposition, data model, infra
+- Phase 4: Task breakdown, dependencies, ownership, sequencing
+- Phase 5+: Pure implementation/test/deploy changes without upstream requirement/design impact
+
 ## Phase Details
 
 ### Phase 1: Requirements Analysis

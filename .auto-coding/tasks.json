@@ -5,7 +5,7 @@
     "foundation": {
       "name": "Foundation Setup",
       "features": [
-        "FEAT-001"
+        "inital-p8m-001"
       ],
       "canStartWhen": [],
       "status": "pending"
@@ -13,7 +13,7 @@
   },
   "features": [
     {
-      "id": "FEAT-001",
+      "id": "inital-p8m-001",
       "title": "Initialize project task management baseline",
       "summary": "Create first executable feature record for dual-track task workflow.",
       "ownerRole": "project-manager",

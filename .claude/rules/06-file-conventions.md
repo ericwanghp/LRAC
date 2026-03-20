@@ -44,7 +44,7 @@
   "parallelGroups": {},
   "features": [
     {
-      "id": "FEAT-001",
+      "id": "inital-p1r-001",
       "description": "Feature description",
       "taskBreakdown": {
         "dependencies": [],
@@ -72,6 +72,9 @@
 **Rules**:
 - Coding Agent updates `status.passes`, `status.status`, timeline fields, and execution history
 - Set `status.passes: true` only after feature completion
+- `features[].id` must match `{iteration}-{phaseSymbol}-{NNN}`
+- `iteration`: `inital` or `imac-{abbr}`
+- `phaseSymbol`: `p1r` `p1b` `p2p` `p25d` `p3a` `p4b` `p5d` `p6t` `p7d` `p8m`
 
 ## progress-summary.md Format
 

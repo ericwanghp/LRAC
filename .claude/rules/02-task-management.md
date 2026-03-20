@@ -33,6 +33,43 @@
 | `status.resumeContext` | object | Resume context | Coding Agent |
 | `executionHistory` | array | Execution history records | Coding Agent |
 
+### Task ID Naming Convention ⚠️ MANDATORY
+
+`features[].id` must use:
+
+`{iteration}-{phaseSymbol}-{NNN}`
+
+Where:
+
+- `iteration`
+  - `inital` for first project bootstrap
+  - `imac-{abbr}` for follow-up `/IMAC` iterations
+- `phaseSymbol` must be one of:
+  - `p1r` `p1b` `p2p` `p25d` `p3a` `p4b` `p5d` `p6t` `p7d` `p8m`
+- `NNN` is a 3-digit sequence (for example: `001`, `002`)
+
+Valid examples:
+
+- `inital-p1r-001`
+- `inital-p25d-003`
+- `imac-auth-p3a-001`
+- `imac-chatflow-p5d-012`
+
+Phase symbol mapping:
+
+| Phase Symbol | Phase |
+|-------------|-------|
+| `p1r` | Phase 1 Research |
+| `p1b` | Phase 1 BRD |
+| `p2p` | Phase 2 PRD |
+| `p25d` | Phase 2.5 Design |
+| `p3a` | Phase 3 Architecture |
+| `p4b` | Phase 4 Breakdown |
+| `p5d` | Phase 5 Development |
+| `p6t` | Phase 6 Testing |
+| `p7d` | Phase 7 Deploy/UAT |
+| `p8m` | Phase 8 Project Management |
+
 ### Parallel Tasks (parallelGroup)
 
 ```json

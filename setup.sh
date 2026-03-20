@@ -50,6 +50,51 @@ log_warn() {
     echo -e "${YELLOW}[WARN]${NC} $1"
 }
 
+render_tasks_template() {
+    local target_file=$1
+    local project_name=$2
+    local template_file=".auto-coding/config/tasks.init.template.json"
+    local now_utc
+    now_utc=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+    if [ -f "$template_file" ] && command -v python3 >/dev/null 2>&1; then
+        python3 - "$template_file" "$target_file" "$project_name" "$now_utc" << 'PY'
+import json
+import sys
+
+template_path, target_path, project_name, now_utc = sys.argv[1:5]
+
+with open(template_path, "r", encoding="utf-8") as f:
+    data = json.load(f)
+
+def walk(v):
+    if isinstance(v, str):
+        return v.replace("__PROJECT_NAME__", project_name).replace("__NOW_UTC__", now_utc)
+    if isinstance(v, list):
+        return [walk(i) for i in v]
+    if isinstance(v, dict):
+        return {k: walk(val) for k, val in v.items()}
+    return v
+
+data = walk(data)
+with open(target_path, "w", encoding="utf-8") as f:
+    json.dump(data, f, ensure_ascii=False, indent=2)
+    f.write("\n")
+PY
+        log_info "tasks.json initialized from tasks.init.template.json"
+    else
+        cat > "$target_file" << EOF
+{
+  "version": "3.0",
+  "project": "$project_name",
+  "parallelGroups": {},
+  "features": []
+}
+EOF
+        log_warn "tasks.init.template.json unavailable, fallback minimal tasks.json created"
+    fi
+}
+
 copy_readme_assets() {
     if [ -d "$SCRIPT_DIR/docs/design/readme-assets" ]; then
         mkdir -p docs/design/readme-assets
@@ -115,15 +160,7 @@ create_new_project() {
     # Get last part of project name (handle relative paths)
     PROJECT_BASENAME=$(basename "$PROJECT_NAME")
 
-    # Create initial tasks.json
-    cat > .auto-coding/tasks.json << EOF
-{
-  "version": "3.0",
-  "project": "$PROJECT_BASENAME",
-  "parallelGroups": {},
-  "features": []
-}
-EOF
+    render_tasks_template ".auto-coding/tasks.json" "$PROJECT_BASENAME"
 
     # Create initial progress.txt
     cat > .auto-coding/progress.txt << 'EOF'
@@ -260,15 +297,7 @@ reset_project() {
     # Get current project name (from directory)
     PROJECT_BASENAME=$(basename "$SCRIPT_DIR")
 
-    # Reset tasks.json
-    cat > .auto-coding/tasks.json << EOF
-{
-  "version": "3.0",
-  "project": "$PROJECT_BASENAME",
-  "parallelGroups": {},
-  "features": []
-}
-EOF
+    render_tasks_template ".auto-coding/tasks.json" "$PROJECT_BASENAME"
 
     # Reset progress.txt
     cat > .auto-coding/progress.txt << 'EOF'

@@ -1,0 +1,423 @@
+{
+  "version": "3.0",
+  "project": "__PROJECT_NAME__",
+  "parallelGroups": {
+    "phase-1-research": {
+      "name": "Phase 1 Market Research",
+      "features": ["inital-p1r-001"],
+      "canStartWhen": [],
+      "status": "pending",
+      "completedFeatures": [],
+      "remainingFeatures": ["inital-p1r-001"]
+    },
+    "phase-1-brd": {
+      "name": "Phase 1 BRD",
+      "features": ["inital-p1b-001"],
+      "canStartWhen": ["inital-p1r-001"],
+      "status": "pending",
+      "completedFeatures": [],
+      "remainingFeatures": ["inital-p1b-001"]
+    },
+    "phase-2-prd": {
+      "name": "Phase 2 PRD",
+      "features": ["inital-p2p-001"],
+      "canStartWhen": ["inital-p1b-001"],
+      "status": "pending",
+      "completedFeatures": [],
+      "remainingFeatures": ["inital-p2p-001"]
+    },
+    "phase-2-5-design": {
+      "name": "Phase 2.5 Design",
+      "features": [
+        "inital-p25d-001",
+        "inital-p25d-002",
+        "inital-p25d-003",
+        "inital-p25d-004",
+        "inital-p25d-005"
+      ],
+      "canStartWhen": ["inital-p2p-001"],
+      "status": "pending",
+      "completedFeatures": [],
+      "remainingFeatures": [
+        "inital-p25d-001",
+        "inital-p25d-002",
+        "inital-p25d-003",
+        "inital-p25d-004",
+        "inital-p25d-005"
+      ]
+    },
+    "phase-3-architecture": {
+      "name": "Phase 3 Architecture",
+      "features": ["inital-p3a-001"],
+      "canStartWhen": ["inital-p25d-002"],
+      "status": "pending",
+      "completedFeatures": [],
+      "remainingFeatures": ["inital-p3a-001"]
+    },
+    "phase-4-breakdown": {
+      "name": "Phase 4 Task Breakdown",
+      "features": ["inital-p4b-001"],
+      "canStartWhen": ["inital-p3a-001"],
+      "status": "pending",
+      "completedFeatures": [],
+      "remainingFeatures": ["inital-p4b-001"]
+    }
+  },
+  "features": [
+    {
+      "id": "inital-p1r-001",
+      "title": "Complete market research task",
+      "summary": "Produce market insights, competitor analysis, and target user personas as BRD inputs.",
+      "ownerRole": "product-manager",
+      "priority": "high",
+      "taskBreakdown": {
+        "dependencies": [],
+        "parallelGroup": "phase-1-research"
+      },
+      "acceptanceCriteria": {
+        "criteria": [
+          "Complete the competitor analysis checklist",
+          "Create target user personas",
+          "Produce a market research findings document"
+        ]
+      },
+      "timeline": {
+        "createdAt": "__NOW_UTC__",
+        "startedAt": null,
+        "completedAt": null
+      },
+      "status": {
+        "status": "pending",
+        "passes": false,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "__NOW_UTC__",
+          "action": "Feature initialized",
+          "details": "Seeded from tasks.init.template.json"
+        }
+      ]
+    },
+    {
+      "id": "inital-p1b-001",
+      "title": "Draft BRD task",
+      "summary": "Consolidate business goals, scope, and constraints into a reviewable BRD.",
+      "ownerRole": "product-manager",
+      "priority": "critical",
+      "taskBreakdown": {
+        "dependencies": ["inital-p1r-001"],
+        "parallelGroup": "phase-1-brd"
+      },
+      "acceptanceCriteria": {
+        "criteria": [
+          "BRD includes business goals, scope, and constraints",
+          "Complete review and record revision items"
+        ]
+      },
+      "timeline": {
+        "createdAt": "__NOW_UTC__",
+        "startedAt": null,
+        "completedAt": null
+      },
+      "status": {
+        "status": "pending",
+        "passes": false,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "__NOW_UTC__",
+          "action": "Feature initialized",
+          "details": "Seeded from tasks.init.template.json"
+        }
+      ]
+    },
+    {
+      "id": "inital-p2p-001",
+      "title": "Draft PRD task",
+      "summary": "Refine product requirements, user stories, and acceptance criteria based on the BRD.",
+      "ownerRole": "product-manager",
+      "priority": "critical",
+      "taskBreakdown": {
+        "dependencies": ["inital-p1b-001"],
+        "parallelGroup": "phase-2-prd"
+      },
+      "acceptanceCriteria": {
+        "criteria": [
+          "PRD includes functional and non-functional requirements",
+          "Key workflows include acceptance criteria"
+        ]
+      },
+      "timeline": {
+        "createdAt": "__NOW_UTC__",
+        "startedAt": null,
+        "completedAt": null
+      },
+      "status": {
+        "status": "pending",
+        "passes": false,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "__NOW_UTC__",
+          "action": "Feature initialized",
+          "details": "Seeded from tasks.init.template.json"
+        }
+      ]
+    },
+    {
+      "id": "inital-p25d-001",
+      "title": "Design phase task: style and theme confirmation (ui-ux-pro-max)",
+      "summary": "Lock UI style and theme through multi-round Q&A as prerequisite input for Stitch generation.",
+      "ownerRole": "ui-ux-designer",
+      "priority": "high",
+      "taskBreakdown": {
+        "dependencies": ["inital-p2p-001"],
+        "parallelGroup": "phase-2-5-design"
+      },
+      "acceptanceCriteria": {
+        "criteria": [
+          "Complete style and theme confirmation notes",
+          "Produce executable visual direction guidance"
+        ]
+      },
+      "timeline": {
+        "createdAt": "__NOW_UTC__",
+        "startedAt": null,
+        "completedAt": null
+      },
+      "status": {
+        "status": "pending",
+        "passes": false,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "__NOW_UTC__",
+          "action": "Feature initialized",
+          "details": "Seeded from tasks.init.template.json"
+        }
+      ]
+    },
+    {
+      "id": "inital-p25d-002",
+      "title": "Design phase task: prompt enhancement (enhance-prompt)",
+      "summary": "Transform the confirmed design direction into Stitch-optimized prompts and output to .stitch/next-prompt.md.",
+      "ownerRole": "ui-ux-designer",
+      "priority": "high",
+      "taskBreakdown": {
+        "dependencies": ["inital-p25d-001"],
+        "parallelGroup": "phase-2-5-design"
+      },
+      "acceptanceCriteria": {
+        "criteria": [
+          "Output Stitch-executable enhanced prompts",
+          "Prompts include design system context"
+        ]
+      },
+      "timeline": {
+        "createdAt": "__NOW_UTC__",
+        "startedAt": null,
+        "completedAt": null
+      },
+      "status": {
+        "status": "pending",
+        "passes": false,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "__NOW_UTC__",
+          "action": "Feature initialized",
+          "details": "Seeded from tasks.init.template.json"
+        }
+      ]
+    },
+    {
+      "id": "inital-p25d-003",
+      "title": "Design phase task: generate interaction prototypes (stitch-loop)",
+      "summary": "Use Stitch to generate key page designs and screenshots as reviewable interaction prototypes.",
+      "ownerRole": "ui-ux-designer",
+      "priority": "high",
+      "taskBreakdown": {
+        "dependencies": ["inital-p25d-002"],
+        "parallelGroup": "phase-2-5-design"
+      },
+      "acceptanceCriteria": {
+        "criteria": [
+          "Key pages generate .stitch/designs/*.html",
+          "Key pages generate .stitch/designs/*.png"
+        ]
+      },
+      "timeline": {
+        "createdAt": "__NOW_UTC__",
+        "startedAt": null,
+        "completedAt": null
+      },
+      "status": {
+        "status": "pending",
+        "passes": false,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "__NOW_UTC__",
+          "action": "Feature initialized",
+          "details": "Seeded from tasks.init.template.json"
+        }
+      ]
+    },
+    {
+      "id": "inital-p25d-004",
+      "title": "Design phase task: generate DESIGN.md (design-md)",
+      "summary": "Extract design tokens from mockups and produce .stitch/DESIGN.md as the design system baseline.",
+      "ownerRole": "ui-ux-designer",
+      "priority": "high",
+      "taskBreakdown": {
+        "dependencies": ["inital-p25d-003"],
+        "parallelGroup": "phase-2-5-design"
+      },
+      "acceptanceCriteria": {
+        "criteria": [
+          "Complete .stitch/DESIGN.md",
+          "Include color, typography, component, and state specifications"
+        ]
+      },
+      "timeline": {
+        "createdAt": "__NOW_UTC__",
+        "startedAt": null,
+        "completedAt": null
+      },
+      "status": {
+        "status": "pending",
+        "passes": false,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "__NOW_UTC__",
+          "action": "Feature initialized",
+          "details": "Seeded from tasks.init.template.json"
+        }
+      ]
+    },
+    {
+      "id": "inital-p25d-005",
+      "title": "Design phase task: component mapping (shadcn-ui, optional)",
+      "summary": "Map design mockups to shadcn/ui components and produce UI-SPEC documentation.",
+      "ownerRole": "frontend-dev",
+      "priority": "medium",
+      "metadata": {
+        "optional": true
+      },
+      "taskBreakdown": {
+        "dependencies": ["inital-p25d-004"],
+        "parallelGroup": "phase-2-5-design"
+      },
+      "acceptanceCriteria": {
+        "criteria": [
+          "Complete component mapping checklist",
+          "Output docs/design/UI-SPEC-*.md"
+        ]
+      },
+      "timeline": {
+        "createdAt": "__NOW_UTC__",
+        "startedAt": null,
+        "completedAt": null
+      },
+      "status": {
+        "status": "pending",
+        "passes": false,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "__NOW_UTC__",
+          "action": "Feature initialized",
+          "details": "Seeded from tasks.init.template.json"
+        }
+      ]
+    },
+    {
+      "id": "inital-p3a-001",
+      "title": "Architecture design task",
+      "summary": "Define technical architecture, module boundaries, data flow, and technology selection rationale.",
+      "ownerRole": "fullstack-dev",
+      "priority": "critical",
+      "taskBreakdown": {
+        "dependencies": ["inital-p25d-004"],
+        "parallelGroup": "phase-3-architecture"
+      },
+      "acceptanceCriteria": {
+        "criteria": [
+          "Architecture diagrams and module boundaries are clear",
+          "Key technology choices and trade-off records are complete"
+        ]
+      },
+      "timeline": {
+        "createdAt": "__NOW_UTC__",
+        "startedAt": null,
+        "completedAt": null
+      },
+      "status": {
+        "status": "pending",
+        "passes": false,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "__NOW_UTC__",
+          "action": "Feature initialized",
+          "details": "Seeded from tasks.init.template.json"
+        }
+      ]
+    },
+    {
+      "id": "inital-p4b-001",
+      "title": "Task breakdown task",
+      "summary": "Break down architecture and design outputs into executable Phase 5+ development tasks and append them to tasks.json.",
+      "ownerRole": "project-manager",
+      "priority": "critical",
+      "taskBreakdown": {
+        "dependencies": ["inital-p3a-001"],
+        "parallelGroup": "phase-4-breakdown"
+      },
+      "acceptanceCriteria": {
+        "criteria": [
+          "Output a complete task breakdown list",
+          "New task dependencies are executable",
+          "Phase 5+ tasks are appended to tasks.json"
+        ]
+      },
+      "timeline": {
+        "createdAt": "__NOW_UTC__",
+        "startedAt": null,
+        "completedAt": null
+      },
+      "status": {
+        "status": "pending",
+        "passes": false,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "__NOW_UTC__",
+          "action": "Feature initialized",
+          "details": "Seeded from tasks.init.template.json"
+        }
+      ]
+    }
+  ]
+}

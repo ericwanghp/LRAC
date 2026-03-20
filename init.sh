@@ -257,6 +257,66 @@ setup_env() {
     fi
 }
 
+ensure_default_task_bootstrap() {
+    local tasks_file="$PROJECT_ROOT/.auto-coding/tasks.json"
+    local template_file="$PROJECT_ROOT/.auto-coding/config/tasks.init.template.json"
+    local project_name
+    project_name=$(basename "$PROJECT_ROOT")
+    local now_utc
+    now_utc=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+    if [ -f "$tasks_file" ]; then
+        return 0
+    fi
+
+    mkdir -p "$PROJECT_ROOT/.auto-coding"
+
+    if [ -f "$template_file" ] && command_exists python3; then
+        log_info "tasks.json missing, seeding from tasks.init.template.json..."
+        python3 - "$template_file" "$tasks_file" "$project_name" "$now_utc" << 'PY'
+import json
+import sys
+
+template_path, tasks_path, project_name, now_utc = sys.argv[1:5]
+
+with open(template_path, "r", encoding="utf-8") as f:
+    data = json.load(f)
+
+def walk(v):
+    if isinstance(v, str):
+        return v.replace("__PROJECT_NAME__", project_name).replace("__NOW_UTC__", now_utc)
+    if isinstance(v, list):
+        return [walk(i) for i in v]
+    if isinstance(v, dict):
+        return {k: walk(val) for k, val in v.items()}
+    return v
+
+data = walk(data)
+with open(tasks_path, "w", encoding="utf-8") as f:
+    json.dump(data, f, ensure_ascii=False, indent=2)
+    f.write("\n")
+PY
+        log_success "tasks.json initialized from tasks.init.template.json"
+    else
+        log_warn "tasks.init.template.json unavailable, creating minimal tasks.json"
+        cat > "$tasks_file" << EOF
+{
+  "version": "3.0",
+  "project": "$project_name",
+  "parallelGroups": {},
+  "features": []
+}
+EOF
+    fi
+
+    if [ ! -f "$PROJECT_ROOT/.auto-coding/progress.txt" ]; then
+        cat > "$PROJECT_ROOT/.auto-coding/progress.txt" << 'EOF'
+# Progress Notes
+EOF
+        log_info "progress.txt initialized"
+    fi
+}
+
 # Run basic tests to verify environment
 run_health_check() {
     log_info "Running environment health check..."
@@ -558,6 +618,9 @@ setup_env
 
 # Step 3: Initialize database
 init_database
+
+# Step 3.5: Ensure default task bootstrap
+ensure_default_task_bootstrap
 
 # Step 4: Health check
 run_health_check

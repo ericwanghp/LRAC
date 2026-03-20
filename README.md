@@ -120,7 +120,7 @@ Full agent specs: [`.claude/agents/AGENTS.md`](.claude/agents/AGENTS.md)
 | Phase | Required Skill | When to Invoke | How |
 |-------|---------------|----------------|-----|
 | **1-2** | `brainstorming` | When receiving new feature request | `Skill("brainstorming")` |
-| **2.5** | `enhance-prompt` → `stitch-loop` → `design-md` → `shadcn-ui` | When creating UI/UX design | Invoke skills in sequence |
+| **2.5** | `ui-ux-pro-max` → `enhance-prompt` → `stitch-loop` → `design-md` → `shadcn-ui` | When creating UI/UX design | Invoke skills in sequence |
 | **3-4** | `writing-plans` | When BRD/PRD approved, creating architecture | `Skill("writing-plans")` |
 | **5** | `executing-plans` | When starting implementation | `Skill("executing-plans")` |
 | **5** | `tdd-enforcement` | Before writing ANY production code | `Skill("tdd-enforcement")` |
@@ -131,13 +131,38 @@ Full agent specs: [`.claude/agents/AGENTS.md`](.claude/agents/AGENTS.md)
 | **5-8** | `dispatching-parallel-agents` | When facing 2+ independent tasks | `Skill("dispatching-parallel-agents")` |
 
 
+## IMAC Command
+
+Use `/IMAC` for iterative evolution of existing projects (Install, Modify, And, Change).
+
+- Command file: `.claude/commands/IMAC.md`
+- Runs intake interaction with single-select and multi-select questions
+- Automatically detects the earliest restart phase (Phase 1/2/2.5/3/4/5+)
+- Performs impact analysis before implementation
+- Appends records to `.auto-coding/progress.txt` and `docs/CHANGELOG.md`
+
+Typical examples:
+
+- `/IMAC` → starts intake and usually restarts from PRD or Design based on answers
+- `/IMAC architecture migrate frontend to XX` → usually restarts from Phase 3
+
+### Task ID Convention
+
+In `.auto-coding/tasks.json`, every `features[].id` must follow:
+
+`{iteration}-{phaseSymbol}-{NNN}`
+
+- `iteration`: `inital` or `imac-{abbr}`
+- `phaseSymbol`: `p1r` `p1b` `p2p` `p25d` `p3a` `p4b` `p5d` `p6t` `p7d` `p8m`
+- `NNN`: 3-digit sequence (`001`, `002`, ...)
+
 
 ## Stitch UI / UX Track
 
 The framework includes a dedicated UI/UX lane between product and architecture:
 
 ```text
-enhance-prompt -> stitch-loop -> design-md -> shadcn-ui
+ui-ux-pro-max -> enhance-prompt -> stitch-loop -> design-md -> shadcn-ui
 ```
 
 Expected outputs:
