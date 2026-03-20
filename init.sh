@@ -408,6 +408,39 @@ check_phase_manifest() {
     fi
 }
 
+ensure_npm_global_bin_in_path() {
+    if ! command_exists npm; then
+        return 0
+    fi
+
+    local npm_prefix
+    npm_prefix=$(npm prefix -g 2>/dev/null || true)
+    if [ -n "$npm_prefix" ] && [ -d "$npm_prefix/bin" ]; then
+        case ":$PATH:" in
+            *":$npm_prefix/bin:"*) ;;
+            *)
+                export PATH="$npm_prefix/bin:$PATH"
+                hash -r
+                ;;
+        esac
+    fi
+}
+
+is_agent_browser_skill_installed() {
+    local skill_dir="$HOME/.claude/skills/agent-browser"
+    if [ -d "$skill_dir" ] || [ -L "$skill_dir" ]; then
+        return 0
+    fi
+
+    if command_exists npx; then
+        if npx -y skills list 2>/dev/null | grep -Eq '(^|[[:space:]])agent-browser([[:space:]]|·|$)'; then
+            return 0
+        fi
+    fi
+
+    return 1
+}
+
 check_agent_browser() {
     log_info "Checking agent-browser setup..."
 
@@ -416,10 +449,13 @@ check_agent_browser() {
         return 1
     fi
 
+    ensure_npm_global_bin_in_path
+
     if ! command_exists agent-browser; then
         log_info "Installing agent-browser via npm..."
         if npm install -g agent-browser; then
             log_success "agent-browser installed"
+            ensure_npm_global_bin_in_path
         else
             log_warn "Global install failed, trying user-local npm prefix..."
             local npm_user_prefix="$HOME/.npm-global"
@@ -431,6 +467,7 @@ check_agent_browser() {
             if npm install -g agent-browser; then
                 log_success "agent-browser installed with user-local npm prefix"
                 log_warn "If needed, add this to your shell profile: export PATH=\"$npm_user_prefix/bin:\$PATH\""
+                ensure_npm_global_bin_in_path
             else
                 log_error "Failed to install agent-browser"
                 return 1
@@ -439,6 +476,11 @@ check_agent_browser() {
     fi
 
     if ! command_exists agent-browser; then
+        local npm_prefix
+        npm_prefix=$(npm prefix -g 2>/dev/null || true)
+        if [ -n "$npm_prefix" ]; then
+            log_warn "npm global prefix: $npm_prefix"
+        fi
         log_error "agent-browser command not found after installation"
         return 1
     else
@@ -458,11 +500,15 @@ check_agent_browser() {
         return 1
     fi
 
-    log_info "Installing agent-browser skill..."
-    if npx skills add vercel-labs/agent-browser; then
-        log_success "agent-browser skill installed"
+    if is_agent_browser_skill_installed; then
+        log_success "agent-browser skill already installed"
     else
-        log_warn "Failed to install agent-browser skill automatically. Try: npx skills add vercel-labs/agent-browser"
+        log_info "Installing agent-browser skill..."
+        if npx skills add vercel-labs/agent-browser; then
+            log_success "agent-browser skill installed"
+        else
+            log_warn "Failed to install agent-browser skill automatically. Try: npx skills add vercel-labs/agent-browser"
+        fi
     fi
 }
 
