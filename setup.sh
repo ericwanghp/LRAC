@@ -21,15 +21,20 @@ Usage: ./setup.sh <command> [arguments]
 
 Commands:
   new <project-name>    Create a new project directory
+  upgrade [project-path] Upgrade framework files in an existing project
   reset                 Reset current project (clear project and doc data)
   help                  Show this help message
 
 Examples:
   ./setup.sh new my-project     # Create a new project named my-project
+  ./setup.sh upgrade ../my-project  # Upgrade framework in existing project
+  ./setup.sh upgrade            # Upgrade framework in current directory
   ./setup.sh reset              # Reset current project, ready for new project
 
 Description:
   - new:  Create complete project structure in a new directory
+  - upgrade: Sync latest framework scaffold into an existing in-flight project
+             while preserving project state files (tasks/progress/docs outputs)
   - reset: Clear current project data and docs, keep framework config
            Also detects and offers to clean project-generated directories
            (e.g., news-aggregator, pm-website, .playwright-mcp, etc.)
@@ -241,6 +246,101 @@ INIT_EOF
     echo "  2. Run ./init.sh to initialize environment"
     echo "  3. Start Claude Code: claude"
     echo "  4. Tell Claude your project requirements"
+    echo ""
+}
+
+# Upgrade framework files in an existing project
+upgrade_project() {
+    local TARGET_PATH="${1:-.}"
+    local TARGET_ABS
+
+    if [ ! -d "$TARGET_PATH" ]; then
+        log_warn "Target path does not exist: $TARGET_PATH"
+        exit 1
+    fi
+
+    TARGET_ABS="$(cd "$TARGET_PATH" && pwd)"
+
+    echo "🔼 Auto-Coding Framework - Upgrade Existing Project"
+    echo "=================================================="
+    echo ""
+    log_info "Framework source: $SCRIPT_DIR"
+    log_info "Upgrade target:   $TARGET_ABS"
+    echo ""
+    echo "Will sync framework layer:"
+    echo "  ✅ .claude/ (except .claude/worktrees)"
+    echo "  ✅ .auto-coding/config/"
+    echo "  ✅ .github/guide.md and selected framework workflows"
+    echo "  ✅ CLAUDE.md, AGENTS.md, README.md, README.zh.md, setup.sh, init.sh"
+    echo "  ✅ docs/design/readme-assets/"
+    echo ""
+    echo "Will preserve project state layer:"
+    echo "  🛡️ .auto-coding/tasks.json"
+    echo "  🛡️ .auto-coding/progress.txt"
+    echo "  🛡️ docs/brd docs/prd docs/architecture docs/design outputs docs/test"
+    echo "  🛡️ application source code and project dependency files"
+    echo ""
+    echo "Continue with upgrade? (y/n)"
+    read -r answer
+    if [ "$answer" != "y" ] && [ "$answer" != "Y" ]; then
+        echo "Operation cancelled"
+        exit 0
+    fi
+
+    mkdir -p "$TARGET_ABS/.auto-coding/config"
+    mkdir -p "$TARGET_ABS/docs/design/readme-assets"
+
+    if command -v rsync >/dev/null 2>&1; then
+        [ -d "$SCRIPT_DIR/.claude" ] && rsync -a --exclude 'worktrees/' "$SCRIPT_DIR/.claude/" "$TARGET_ABS/.claude/"
+        [ -d "$SCRIPT_DIR/.auto-coding/config" ] && rsync -a "$SCRIPT_DIR/.auto-coding/config/" "$TARGET_ABS/.auto-coding/config/"
+        [ -d "$SCRIPT_DIR/docs/design/readme-assets" ] && rsync -a "$SCRIPT_DIR/docs/design/readme-assets/" "$TARGET_ABS/docs/design/readme-assets/"
+    else
+        if [ -d "$SCRIPT_DIR/.claude" ]; then
+            mkdir -p "$TARGET_ABS/.claude"
+            for entry in "$SCRIPT_DIR"/.claude/*; do
+                name=$(basename "$entry")
+                if [ "$name" != "worktrees" ]; then
+                    cp -R "$entry" "$TARGET_ABS/.claude/"
+                fi
+            done
+        fi
+        [ -d "$SCRIPT_DIR/.auto-coding/config" ] && cp -R "$SCRIPT_DIR/.auto-coding/config/." "$TARGET_ABS/.auto-coding/config/"
+        [ -d "$SCRIPT_DIR/docs/design/readme-assets" ] && cp -R "$SCRIPT_DIR/docs/design/readme-assets/." "$TARGET_ABS/docs/design/readme-assets/"
+    fi
+
+    for file in CLAUDE.md AGENTS.md README.md README.zh.md setup.sh init.sh; do
+        if [ -f "$SCRIPT_DIR/$file" ]; then
+            cp "$SCRIPT_DIR/$file" "$TARGET_ABS/$file"
+        fi
+    done
+
+    if [ -f "$TARGET_ABS/setup.sh" ]; then
+        chmod +x "$TARGET_ABS/setup.sh"
+    fi
+    if [ -f "$TARGET_ABS/init.sh" ]; then
+        chmod +x "$TARGET_ABS/init.sh"
+    fi
+
+    if [ -f "$SCRIPT_DIR/.github/guide.md" ]; then
+        mkdir -p "$TARGET_ABS/.github"
+        cp "$SCRIPT_DIR/.github/guide.md" "$TARGET_ABS/.github/guide.md"
+    fi
+    if [ -d "$SCRIPT_DIR/.github/workflows" ]; then
+        mkdir -p "$TARGET_ABS/.github/workflows"
+        for wf in claude-code-advanced.yml policy-toolchain-scan.yml; do
+            if [ -f "$SCRIPT_DIR/.github/workflows/$wf" ]; then
+                cp "$SCRIPT_DIR/.github/workflows/$wf" "$TARGET_ABS/.github/workflows/$wf"
+            fi
+        done
+    fi
+
+    log_success "Framework upgrade sync completed"
+    echo ""
+    echo "Next steps in target project:"
+    echo "  1. cd $TARGET_ABS"
+    echo "  2. Run ./init.sh to validate upgraded framework dependencies"
+    echo "  3. Run npm run typecheck && npm run lint"
+    echo "  4. Review git diff and commit upgrade changes"
     echo ""
 }
 
@@ -523,7 +623,7 @@ check_dependencies() {
         node .claude/scripts/check-skills.js 2>/dev/null || {
             log_warn "Skills auto-install failed, please install manually:"
             echo "   claude skill install webapp-testing"
-            echo "   claude skill install frontend-design"
+            echo "   npx skills add nextlevelbuilder/ui-ux-pro-max-skill"
             echo "   claude skill install mcp-builder"
         }
     else
@@ -545,6 +645,9 @@ case "$1" in
             exit 1
         fi
         create_new_project "$2"
+        ;;
+    upgrade)
+        upgrade_project "$2"
         ;;
     reset)
         reset_project

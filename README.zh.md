@@ -242,6 +242,35 @@ chmod +x setup.sh
 ./setup.sh reset
 ```
 
+## 在途项目升级框架
+
+当框架仓库更新后，可用以下命令升级已有在途项目：
+
+```bash
+chmod +x setup.sh
+./setup.sh upgrade ../your-existing-project
+```
+
+如果你当前就在目标项目目录，也可以直接执行：
+
+```bash
+./setup.sh upgrade
+```
+
+`upgrade` 会同步框架层文件（`.claude`、`.auto-coding/config`、脚手架脚本与文档），并保留项目状态文件，例如：
+
+- `.auto-coding/tasks.json`
+- `.auto-coding/progress.txt`
+- 现有项目文档产出与业务源码
+
+升级后，请在目标项目中执行：
+
+```bash
+./init.sh
+npm run typecheck
+npm run lint
+```
+
 ## 推荐并行设置
 
 <p align="center">

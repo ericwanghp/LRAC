@@ -243,6 +243,35 @@ chmod +x setup.sh
 ./setup.sh reset
 ```
 
+## Upgrade Framework in an In-Flight Project
+
+When this framework repository is updated, upgrade an existing project with:
+
+```bash
+chmod +x setup.sh
+./setup.sh upgrade ../your-existing-project
+```
+
+You can also run upgrade in the current directory:
+
+```bash
+./setup.sh upgrade
+```
+
+`upgrade` syncs framework-layer files (`.claude`, `.auto-coding/config`, scaffold scripts/docs) while preserving project-state files such as:
+
+- `.auto-coding/tasks.json`
+- `.auto-coding/progress.txt`
+- Existing project docs outputs and source code
+
+After upgrade, run in the target project:
+
+```bash
+./init.sh
+npm run typecheck
+npm run lint
+```
+
 ## Recommended Parallel Setup
 
 <p align="center">
