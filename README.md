@@ -252,12 +252,6 @@ chmod +x setup.sh
 ./setup.sh upgrade ../your-existing-project
 ```
 
-You can also run upgrade in the current directory:
-
-```bash
-./setup.sh upgrade
-```
-
 `upgrade` syncs framework-layer files (`.claude`, `.auto-coding/config`, scaffold scripts/docs) while preserving project-state files such as:
 
 - `.auto-coding/tasks.json`

@@ -28,6 +28,7 @@ PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Default configuration
 SKIP_DEPS=false
+SKIP_EXTERNAL=false
 DEV_MODE=false
 TEST_MODE=false
 RUNTIME_MODE="auto"
@@ -60,6 +61,7 @@ Usage: ./init.sh [options]
 Options:
   -h, --help       Show this help message
   -s, --skip-deps  Skip dependency installation
+  -e, --skip-external  Skip external skill installation (skills requiring GitHub clone)
   -d, --dev        Start development mode (keep service running)
   -t, --test       Run tests to verify environment
   -r, --runtime    Runtime mode: auto | claude | codex
@@ -67,9 +69,11 @@ Options:
 Examples:
   ./init.sh              # Full initialization
   ./init.sh -s           # Skip dependency installation
+  ./init.sh -e           # Skip external skill installation
   ./init.sh -d           # Development mode (run in background)
   ./init.sh -t           # Environment verification only
   ./init.sh -r codex     # Prefer Codex-compatible guidance and install paths
+  SKIP_EXTERNAL_SKILLS=1 ./init.sh  # Skip external skills via env var
 
 EOF
 }
@@ -378,6 +382,9 @@ check_framework_skills() {
     log_info "Checking framework Skills dependencies..."
 
     if [ -f "$PROJECT_ROOT/.claude/scripts/check-skills.js" ]; then
+        if [ "$SKIP_EXTERNAL" = true ]; then
+            export SKIP_EXTERNAL_SKILLS=1
+        fi
         FRAMEWORK_RUNTIME="$EFFECTIVE_RUNTIME" node "$PROJECT_ROOT/.claude/scripts/check-skills.js"
     else
         log_warn "Skills check script does not exist"
@@ -443,6 +450,11 @@ is_agent_browser_skill_installed() {
 
 check_agent_browser() {
     log_info "Checking agent-browser setup..."
+
+    if [ "$SKIP_EXTERNAL" = true ]; then
+        log_warn "Skipping agent-browser setup (--skip-external)"
+        return 0
+    fi
 
     if ! command_exists npm; then
         log_error "npm not installed. Please install Node.js first"
@@ -514,6 +526,11 @@ check_agent_browser() {
 
 check_ui_ux_pro_max_skill() {
     log_info "Checking ui-ux-pro-max skill setup..."
+
+    if [ "$SKIP_EXTERNAL" = true ]; then
+        log_warn "Skipping ui-ux-pro-max skill setup (--skip-external)"
+        return 0
+    fi
 
     local installed=false
 
@@ -617,6 +634,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         -s|--skip-deps)
             SKIP_DEPS=true
+            shift
+            ;;
+        -e|--skip-external)
+            SKIP_EXTERNAL=true
             shift
             ;;
         -d|--dev)

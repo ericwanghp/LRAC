@@ -142,18 +142,26 @@ function promptScope(skillName) {
  */
 async function installGitHubSkill(skillName, actualSkillName, repository, scope) {
   const command = `npx skills add ${repository} --skill ${actualSkillName} --${scope}`;
+  const timeoutMs = parseInt(process.env.SKILL_INSTALL_TIMEOUT || '120000', 10);
 
   try {
-    log(`  Running: ${command}`, 'info');
+    log(`  Running: ${command} (timeout: ${timeoutMs / 1000}s)`, 'info');
     execSync(command, {
       encoding: 'utf8',
       stdio: 'inherit',
-      cwd: ROOT_DIR
+      cwd: ROOT_DIR,
+      timeout: timeoutMs
     });
     log(`  Skill ${skillName} installed successfully`, 'success');
     return true;
   } catch (e) {
-    log(`  Failed to install ${skillName}: ${e.message}`, 'error');
+    const isTimeout = e.signal === 'SIGTERM' || (e.message && e.message.includes('timed out'));
+    if (isTimeout) {
+      log(`  Failed to install ${skillName}: clone/install timed out (network issue)`, 'error');
+      log(`  Try: export SKILL_INSTALL_TIMEOUT=300000 for slower networks, or set SKIP_EXTERNAL_SKILLS=1 to skip`, 'warning');
+    } else {
+      log(`  Failed to install ${skillName}: ${e.message}`, 'error');
+    }
     return false;
   }
 }
@@ -206,18 +214,24 @@ async function installSkill(skillName, source, options = {}) {
       const repoInfo = source.replace('npx:', '');
       const skillArg = options.skillName ? ` --skill ${options.skillName}` : '';
       const installCmd = options.installCommand || `npx skills add ${repoInfo}${skillArg} --global`;
+      const timeoutMs = parseInt(process.env.SKILL_INSTALL_TIMEOUT || '120000', 10);
 
       try {
-        log(`  Running: ${installCmd}`, 'info');
+        log(`  Running: ${installCmd} (timeout: ${timeoutMs / 1000}s)`, 'info');
         execSync(installCmd, {
           encoding: 'utf8',
           stdio: 'inherit',
-          cwd: ROOT_DIR
+          cwd: ROOT_DIR,
+          timeout: timeoutMs
         });
         log(`  Skill ${skillName} installed successfully`, 'success');
         return true;
       } catch (e) {
-        throw new Error(`npx skills add failed for ${skillName}`);
+        const isTimeout = e.signal === 'SIGTERM' || (e.message && e.message.includes('timed out'));
+        if (isTimeout) {
+          throw new Error(`clone/install timed out for ${repoInfo} (network issue). Try: SKIP_EXTERNAL_SKILLS=1 or SKILL_INSTALL_TIMEOUT=300000`);
+        }
+        throw new Error(`npx skills add failed for ${skillName} from ${repoInfo}`);
       }
     }
 
@@ -295,6 +309,11 @@ async function main() {
 
   log(`Checking ${allSkills.length} skill dependencies...\n`, 'info');
 
+  const skipExternal = process.env.SKIP_EXTERNAL_SKILLS === '1';
+  if (skipExternal) {
+    log('SKIP_EXTERNAL_SKILLS=1 set, will skip external skill installation\n', 'warning');
+  }
+
   const missing = [];
   const installed = [];
   const failed = [];
@@ -338,6 +357,13 @@ async function main() {
     console.log('\n📦 Installing missing skills...\n');
 
     for (const skill of missing) {
+      const isExternal = skill.source && !skill.source.startsWith('built-in') && !skill.source.startsWith('.');
+      if (skipExternal && isExternal) {
+        log(`${skill.name}: Skipped (SKIP_EXTERNAL_SKILLS=1)`, 'warning');
+        failed.push(skill);
+        continue;
+      }
+
       if (skill.autoInstall !== false) {
         // Pass skill options for GitHub-hosted skills (e.g., skillName for Stitch)
         const options = skill.skillName ? { skillName: skill.skillName } : {};
@@ -372,6 +398,10 @@ async function main() {
     failed.forEach(skill => {
       if (skill.source && skill.source.startsWith('github:')) {
         const repo = skill.source.replace('github:', '');
+        const skillName = skill.skillName || skill.name;
+        console.log(`   - npx skills add ${repo} --skill ${skillName} --global`);
+      } else if (skill.source && skill.source.startsWith('npx:')) {
+        const repo = skill.source.replace('npx:', '');
         const skillName = skill.skillName || skill.name;
         console.log(`   - npx skills add ${repo} --skill ${skillName} --global`);
       } else {
